@@ -1,0 +1,147 @@
+#!/bin/bash
+
+[ -n "${DEBUG}" ] && set -x
+
+echo "  ::: start at $(date)"
+T1="$(date +%s)"
+
+export PATH=${PATH}:~/bin
+
+export ARCH=${ARCH:-arm arm64 riscv x86}
+
+#export CCACHE_DIR=${CCACHE_DIR:-/nv/ccache}
+
+if [ "$1" == "-noclean" ] ; then
+	NOCLEAN=1
+	shift
+else
+	NOCLEAN=0
+fi
+
+# Usage: batchbuild repo/branch
+
+REMOTE=$(echo $1 | sed s@/.*@@g)
+BRANCH=$(echo $1 | sed s@.*/@@)
+CHECKOUT=$2
+FETCHARGS=""
+
+if [ "$(dirname $1)" == "." ] ; then
+	REMOTE=$1
+	BRANCH="HEAD"
+fi
+
+
+case ${REMOTE} in
+rmk)
+	TO="olof@lixom.net, rmk+buildreports@armlinux.org.uk"
+	;;
+arm-soc)
+	TO="olof@lixom.net, kernel-build-reports@lists.linaro.org"
+	;;
+next)
+	TO="olof@lixom.net, kernel-build-reports@lists.linaro.org"
+	;;
+mainline)
+	TO="olof@lixom.net, kernel-build-reports@lists.linaro.org"
+	;;
+stable-rc)
+	TO="olof@lixom.net, kernel-build-reports@lists.linaro.org"
+	;;
+cros)
+	TO="olof@lixom.net, cros-kernel-buildreports@google.com"
+	;;
+*)
+	TO="olof@lixom.net"
+	;;
+esac
+
+: ${CHECKOUT:="${REMOTE}/${BRANCH}"}
+
+case ${REMOTE} in
+	next)
+		BUILDID=$(cd /src ; git describe --match=next* ${CHECKOUT})
+	;;
+	*)
+		BUILDID=$(cd /src ; git describe --match=v* ${CHECKOUT})
+	;;
+esac
+
+if [ -d /logs/${REMOTE}/${BUILDID} ] ; then
+	echo "Version ${REMOTE}/${BUILDID} has already been built. Aborting"
+#	exit 0
+fi
+
+echo "  ::: Email will go to: ${TO}"
+
+cd /build || exit 1
+
+git clone --quiet --reference=/src --depth=1 -n file:///src . && git checkout --quiet ${BUILDID} 
+
+cp ~/makefile.batchbuild makefile 
+
+echo "  ::: Building ${BUILDID}"
+
+for arch in ${ARCH} ; do
+	if ! [ -d arch/${arch} ] ; then
+		echo "  ::: Skipping arch ${arch}"
+		ARCH=${ARCH/${arch}}
+	fi
+done
+
+mkdir -p /logs/${REMOTE}/${BUILDID}
+mkdir -p /install/${REMOTE}/${BUILDID}
+
+if [ $NOCLEAN -ne 1 ] ; then
+	echo "  ::: cleaning" && rm -rf build/* 2>&1 >/dev/null
+fi
+
+(cat arch/arm/configs/multi_v7_defconfig ; echo "CONFIG_LPAE=y") > arch/arm/configs/multi_lpae_defconfig
+(cat arch/arm/configs/multi_v7_defconfig ; echo "CONFIG_SMP=n") > arch/arm/configs/multi_v7_nosmp_defconfig
+(cat arch/arm64/configs/defconfig ; echo "CONFIG_SMP=n") > arch/arm64/configs/nosmp_defconfig
+
+# First, do only a pass across the defconfigs that get booted and build
+# them early, so booting can happen in parallel
+
+if [ -f arch/riscv/Makefile ] ; then
+	(cat arch/riscv/configs/defconfig ; echo "CONFIG_SMP=n") > arch/riscv/configs/nosmp_defconfig
+	(cat arch/riscv/configs/defconfig ; echo "CONFIG_ARCH_RV32I=y") > arch/riscv/configs/rv32_defconfig
+fi
+
+echo "  ::: Full builds for: ${ARCH}"
+
+# Hack to deal with missing jobserver tokens due to make getting stuck in
+# pselect.
+( while true ; do killall -s CHLD make ; sleep 1 ; done  >/dev/null 2>&1 ) &
+
+for arch in ${ARCH} ; do
+	touch arch/${arch}/configs/all{no,mod}config
+	touch arch/${arch}/configs/tinyconfig
+	make ARCH=${arch} buildtargets 2>&1 >/dev/null
+done
+
+rm -f buildall.*
+
+# Build list of targets (build-<arch>-config)
+TARG=""
+for arch in ${ARCH} ; do
+	TARG="$TARG $(printf "build-$arch-%s " $(basename -a arch/${arch}/configs/*[^.]config))"
+done
+
+# Kick off main build
+make ${TARG} INSTALLDIR=/ds/kernels VERSIONDIR=${REMOTE}/${BUILDID} -sk -j $(($(nproc) + 2))
+T2="$(date +%s)"
+
+mv buildall.* /logs/${REMOTE}/${BUILDID}/
+
+(cd /logs/${REMOTE}/${BUILDID} ; 
+	TO="${TO}" \
+	REMOTE="${REMOTE}" \
+	REMOTEURL="$(cd /src ; git remote show -n ${REMOTE}| awk '/Fetch URL:/{print $3}')" \
+	BUILDID="${BUILDID}" \
+	TOPCOMMITS="$(cd /src ; git log --oneline -3 ${BUILDID})" \
+	BUILDTIME=$((T2-T1))  /usr/local/bin/buildreport > email.txt
+)
+
+echo "  ::: archiving"
+
+echo "  ::: done at $(date)"

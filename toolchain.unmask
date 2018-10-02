@@ -1,0 +1,4 @@
+>sys-devel/gcc-8.2.0 ~amd64
+>sys-devel/binutils-2.31 ~amd64
+>sys-libs/binutils-libs-2.31 ~amd64
+>=sys-kernel/linux-headers-4.17 ~riscv64 ~riscv

@@ -1,7 +1,7 @@
 FROM gentoo/portage:latest as portage
 
 # image is based on stage3-amd64
-FROM gentoo/stage3-amd64:latest
+FROM gentoo/stage3-amd64:latest as native
 
 # copy the entire portage volume in
 COPY --from=portage /usr/portage /usr/portage
@@ -9,6 +9,15 @@ COPY --from=portage /usr/portage /usr/portage
 COPY make.conf /etc/portage
 
 # Need to disable sandboxes due to lack of elevated privileges during build
-RUN FEATURES="-sandbox -usersandbox"  emerge -e world
+RUN FEATURES="nodoc noman noinfo -sandbox -usersandbox"  emerge -e world \
+ && rm -rf /usr/portage \
+ && rm -rf /usr/share/gtk-doc /usr/share/locale \
+ && rm -rf /usr/share/binutils-data/*/*/info /usr/share/sgml \
+ && rm -rf /usr/lib/python*/test \
+ && cd / && find / -name __pycache__  | xargs rm -rf
+
+FROM scratch
+WORKDIR /
+COPY --from=native / /
 
 # continue with image build ...

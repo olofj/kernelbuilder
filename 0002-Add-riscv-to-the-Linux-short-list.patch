@@ -1,0 +1,29 @@
+From 11694d12d086afa13ef01ed30f9809dce8c2e55a Mon Sep 17 00:00:00 2001
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Fri, 29 Dec 2017 14:13:03 -0800
+Subject: [PATCH 2/2] Add riscv* to the Linux short list
+
+This allows "crossdev -t riscv64" to install a RISC-V cross compiler for
+Linux targets.
+
+Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
+---
+ crossdev | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/crossdev b/crossdev
+index 52dda2e..f5f4989 100755
+--- a/crossdev
++++ b/crossdev
+@@ -191,7 +191,7 @@ parse_target() {
+ 				CTARGET="aarch${CTARGET#arm}-unknown-linux-gnu";;
+ 			arm*)
+ 				CTARGET="${CTARGET}-unknown-linux-gnueabi";;
+-			aarch64*|alpha*|cris*|hppa*|ia64*|m68*|mips*|powerpc*|sparc*|sh*|tile*)
++			aarch64*|alpha*|cris*|hppa*|ia64*|m68*|mips*|powerpc*|riscv*|sparc*|sh*|tile*)
+ 				CTARGET="${CTARGET}-unknown-linux-gnu";;
+ 			bfin*|h8300*|msp430*|nds32*|nios2*|spu*|xc16x*)
+ 				CTARGET="${CTARGET}-elf";;
+-- 
+2.11.0
+

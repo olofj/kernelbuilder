@@ -1,0 +1,184 @@
+#!/bin/bash
+
+# Expecting the following variables to be passed in:
+# TO
+# REMOTE
+# REMOTEURL
+# BUILDID
+# TOPCOMMITS
+# BUILDTIME
+
+# Works on logs passed in by name
+
+warn_grep() {
+	fgrep -i warning: $*  |
+		fgrep -v "TODO: return_address should use unwind tables" |
+		fgrep -v "NPTL on non MMU needs fixing" |
+		fgrep -v "Wunused-const-variable=" |
+		egrep -v "Warning: ignoring incorrect section type for \.(init|fini)_array" |
+		egrep -v "syscall .* not implemented" |
+		sed "s@.*/build/@@g" |
+		sed "s@.*\.\./\.\./@@g"
+}
+
+warn_count() {
+	warn_grep $* | wc -l
+}
+
+warn_stats() {
+	warn_grep $* | sort | uniq -c | sort -n
+}
+
+sect_grep() {
+	fgrep "Section mismatch" $*  |
+		sed "s@.*buildall.arm.@@g" |
+		sed "s@.log.*WARNING:@ WARNING:@g"
+}
+
+sect_count() {
+	sect_grep $* | wc -l
+}
+
+sect_stats() {
+	sect_grep $* | sort | uniq -c | sort -n
+}
+
+err_grep() {
+	egrep -i 'undefined|error:|No rule to make target' $*  |
+		sed "s@.*/build/@@g" |
+		sed "s@.*\.\./\.\./@@g"
+}
+
+err_count() {
+	err_grep $* | wc -l
+}
+
+syscall_stats() {
+	fgrep "#warning syscall" $* |
+		sed 's/buildall.\([a-z0-9]*\).*: #warning syscall/\1\t/g' |
+		sed 's/ not implemented.*//g' |
+		sort -u
+}
+
+(
+PASSED=$(ls -l buildall.*.*passed |wc -l)
+FAILED=$(ls -l buildall.*.*failed |wc -l)
+WARNS=$(warn_count buildall.*.*)
+SECTS=$(sect_count buildall.*.*)
+ERRS=$(err_count buildall.*.*)
+
+sed -e "s/%%FAILED%%/${FAILED}/g" \
+    -e "s/%%WARNS%%/${WARNS}/g" \
+    -e "s/%%REMOTE%%/${REMOTE}/g" \
+    -e "s/%%TO%%/${TO}/g" \
+    -e "s@%%BUILD%%@${REMOTE}/${BUILDID}@g" \
+<< EOF
+From: Olof's autobuilder <build@lixom.net>
+To: %%TO%%
+Subject: %%REMOTE%% build: %%WARNS%% warnings %%FAILED%% failures (%%BUILD%%)
+
+Here are the build results from automated periodic testing.
+
+The tree being built was %%REMOTE%%, found at:
+
+EOF
+
+echo "URL: ${REMOTEURL}"
+echo ""
+echo "Branch: ${BRANCH}"
+echo ""
+echo "Topmost commits: "
+echo "${TOPCOMMITS}"
+
+cat << EOF
+
+Build logs (stderr only) can be found at the following link (experimental):
+
+EOF
+
+echo http://arm-soc.lixom.net/buildlogs/${REMOTE}/${BUILDID}/
+echo ""
+
+
+sed -e "s/%%PASSED%%/${PASSED}/g" \
+    -e "s/%%FAILED%%/${FAILED}/g" \
+    -e "s/%%SECTS%%/${SECTS}/g" \
+    -e "s/%%WARNS%%/${WARNS}/g" \
+    -e "s/%%TIME%%/$((BUILDTIME/60%120))m $((BUILDTIME%60))s/g" \
+<< EOF
+
+	Runtime:		%%TIME%%
+
+	Passed:			%%PASSED%%
+	Failed:			%%FAILED%%
+
+	Warnings:		%%WARNS%%
+
+	Section mismatches:	%%SECTS%%
+
+-------------------------------------------------------------------------------
+
+Failed defconfigs:
+EOF
+
+ls -1 buildall.*failed | sed -e 's/buildall./	/g' -e 's/.log.failed//g'
+
+cat << EOF
+
+-------------------------------------------------------------------------------
+EOF
+
+if egrep -qi undefined\|error: buildall.*log.failed ; then
+	echo ""
+	echo "Errors:"
+	echo ""
+	for board in $(ls -1 buildall.*failed | sed -e 's/buildall.//g' -e 's/.log.failed//g') ; do
+		echo "	${board}:"
+		err_grep buildall.${board}.log.failed
+		echo ""
+	done
+else
+	echo ""
+	echo "No errors"
+	echo ""
+fi
+
+
+if egrep -qi 'warning:.[^#][^w]' buildall.*.* ; then
+	echo ""
+	echo "Warnings:"
+	echo ""
+	for board in $(egrep -li 'warning:.[^#][^w]' buildall.* | sed -e 's/buildall.//g' -e 's/.log.*//g') ; do
+		echo "	${board}:"
+		warn_grep buildall.${board}.log.*
+		echo ""
+	done
+else
+	echo ""
+	echo "No warnings"
+	echo ""
+fi
+
+
+if fgrep -q "warning syscall" buildall.* ; then
+	echo ""
+	echo "New syscalls:"
+	echo ""
+	syscall_stats buildall*
+else
+	echo ""
+	echo "No new syscalls"
+	echo ""
+fi
+
+if fgrep -q "Section mismatch" buildall.* ; then
+	echo ""
+	echo "Section mismatches:"
+	echo ""
+	sect_stats buildall.*.*
+else
+	echo ""
+	echo "No section mismatches"
+	echo ""
+fi
+)
