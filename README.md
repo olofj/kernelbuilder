@@ -11,3 +11,7 @@ General setup for the container:
 /install is where the kernel is installed to
 /logs are where logs are written out to
 
+
+Build the locally tuned version:
+
+docker build -t local/stage3-native -f Dockerfile.gentoo-base
