@@ -75,6 +75,8 @@ echo "  ::: Email will go to: ${TO}"
 
 cd /build || exit 1
 
+echo "  ::: Cloning sources"
+
 git clone --quiet --reference=/src --depth=1 -n file:///src . && git checkout --quiet ${BUILDID} 
 
 cp ~/makefile.batchbuild makefile 
@@ -95,19 +97,19 @@ if [ $NOCLEAN -ne 1 ] ; then
 	echo "  ::: cleaning" && rm -rf build/* 2>&1 >/dev/null
 fi
 
-(cat arch/arm/configs/multi_v7_defconfig ; echo "CONFIG_LPAE=y") > arch/arm/configs/multi_lpae_defconfig
-(cat arch/arm/configs/multi_v7_defconfig ; echo "CONFIG_SMP=n") > arch/arm/configs/multi_v7_nosmp_defconfig
-(cat arch/arm64/configs/defconfig ; echo "CONFIG_SMP=n") > arch/arm64/configs/nosmp_defconfig
+echo "  ::: Full builds for: ${ARCH}"
+
+(grep -v "CONFIG_LPAE is not" arch/arm/configs/multi_v7_defconfig ; echo "CONFIG_LPAE=y") > arch/arm/configs/multi_lpae_defconfig
+(grep -v "CONFIG_SMP=y" arch/arm/configs/multi_v7_defconfig ; echo "CONFIG_SMP=n") > arch/arm/configs/multi_v7_nosmp_defconfig
+(grep -v "CONFIG_SMP=y"  arch/arm64/configs/defconfig ; echo "CONFIG_SMP=n") > arch/arm64/configs/nosmp_defconfig
 
 # First, do only a pass across the defconfigs that get booted and build
 # them early, so booting can happen in parallel
 
 if [ -f arch/riscv/Makefile ] ; then
-	(cat arch/riscv/configs/defconfig ; echo "CONFIG_SMP=n") > arch/riscv/configs/nosmp_defconfig
-	(cat arch/riscv/configs/defconfig ; echo "CONFIG_ARCH_RV32I=y") > arch/riscv/configs/rv32_defconfig
+	(grep -v "CONFIG_SMP=y" arch/riscv/configs/defconfig ; echo "CONFIG_SMP=n") > arch/riscv/configs/nosmp_defconfig
+	(grep -v "CONFIG_ARCH_RV32I is not" arch/riscv/configs/defconfig ; echo "CONFIG_ARCH_RV32I=y") > arch/riscv/configs/rv32_defconfig
 fi
-
-echo "  ::: Full builds for: ${ARCH}"
 
 # Hack to deal with missing jobserver tokens due to make getting stuck in
 # pselect.
