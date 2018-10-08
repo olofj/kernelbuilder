@@ -61,11 +61,11 @@ syscall_stats() {
 }
 
 (
-PASSED=$(ls -l buildall.*.*passed |wc -l)
-FAILED=$(ls -l buildall.*.*failed |wc -l)
-WARNS=$(warn_count buildall.*.*)
-SECTS=$(sect_count buildall.*.*)
-ERRS=$(err_count buildall.*.*)
+PASSED=$(ls -l buildall.*passed |wc -l)
+FAILED=$(ls -l buildall.*failed |wc -l)
+WARNS=$(warn_count buildall.*)
+SECTS=$(sect_count buildall.*)
+ERRS=$(err_count buildall.*)
 
 sed -e "s/%%FAILED%%/${FAILED}/g" \
     -e "s/%%WARNS%%/${WARNS}/g" \
