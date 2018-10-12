@@ -17,7 +17,7 @@ RUN emerge crossdev
 
 # X86 8.2.0 toolchain (and picking it by default)
 
-RUN emerge crossdev sys-devel/gcc sys-devel/binutils sys-libs/binutils-libs \
+RUN emerge crossdev sys-devel/gcc sys-devel/binutils sys-libs/binutils-libs
 #RUN gcc-config x32-pc-linux-gnu-8.2.0
 
 # ARM toolchains
