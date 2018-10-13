@@ -91,6 +91,7 @@ for arch in ${ARCH} ; do
 done
 
 mkdir -p /logs/${REMOTE}/${BUILDID}
+mkdir -p /logs/emails
 mkdir -p /install/${REMOTE}/${BUILDID}
 
 if [ $NOCLEAN -ne 1 ] ; then
@@ -141,7 +142,7 @@ mv buildall.* /logs/${REMOTE}/${BUILDID}/
 	REMOTEURL="$(cd /src ; git remote show -n ${REMOTE}| awk '/Fetch URL:/{print $3}')" \
 	BUILDID="${BUILDID}" \
 	TOPCOMMITS="$(cd /src ; git log --oneline -3 ${BUILDID})" \
-	BUILDTIME=$((T2-T1))  /usr/local/bin/buildreport > email.txt
+	BUILDTIME=$((T2-T1))  /usr/local/bin/buildreport > /logs/emails/${REMOTE}.${BUILDID}.$(date +%K-%H%M%S).txt
 )
 
 echo "  ::: archiving"
