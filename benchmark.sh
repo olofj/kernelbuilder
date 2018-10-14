@@ -7,6 +7,7 @@
 # compare amd64 vs x86 vs amd64-x32.
 
 REF=next/master
+ARCH=${ARCH:-arm}
 
 purge_dirs() {
 	echo "Cleaning up temporary workspace"
@@ -28,11 +29,11 @@ for cont in builder-generic-x32 builder-generic-x86 builder-generic builder ; do
 			--mount type=bind,src=/tmp/logs,dst=/logs \
 			--mount type=bind,src=/work/scratch,dst=/build \
 			--net none \
-			-e ARCH=arm \
+			-e ARCH="${ARCH}" \
 			local/${cont} \
 			${REF} | tee output.${cont}.warmup
 	cat perfstat.${cont}.warmup
-	cp /tmp/logs/*/*/email.* email.${cont}.warmup
+	cp /tmp/logs/emails/* .
 
 	purge_dirs
 	sudo fstrim -av
@@ -43,9 +44,9 @@ for cont in builder-generic-x32 builder-generic-x86 builder-generic builder ; do
 			--mount type=bind,src=/tmp/logs,dst=/logs \
 			--mount type=bind,src=/work/scratch,dst=/build \
 			--net none \
-			-e ARCH=arm \
+			-e ARCH="${ARCH}" \
 			local/${cont} \
 			${REF} | tee output.${cont}
 	cat perfstat.${cont}
-	cp /tmp/logs/next/*/email.* email.${cont}
+	cp /tmp/logs/emails/* .
 done
