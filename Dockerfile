@@ -22,16 +22,16 @@ RUN emerge crossdev sys-devel/gcc sys-devel/binutils sys-libs/binutils-libs \
 
 # ARM toolchains
 
-RUN crossdev --gcc 8.2.0 --binutils 2.31.1 -s1 -t arm \
- && crossdev --gcc 8.2.0 --binutils 2.31.1 -s1 -t arm64
+RUN crossdev --gcc \>=8.2.0 --binutils \>=2.31.1 -s1 -t arm \
+ && crossdev --gcc \>=8.2.0 --binutils \>=2.31.1 -s1 -t arm64
 
 # RISCV toolchain
 
-RUN crossdev --gcc 8.2.0 --binutils 2.31.1 -s1 -t riscv64-unknown-linux-gnu --k 4.17 --l 2.28 --without-headers
+RUN crossdev --gcc \>=8.2.0 --binutils \>=2.31.1 -s1 -t riscv64-unknown-linux-gnu --k 4.17 --l 2.28 --without-headers
 
 # POWER toolchain
 
-RUN crossdev --gcc 8.2.0 --binutils 2.31.1 -s1 -t ppc64
+RUN crossdev --gcc \>=8.2.0 --binutils \>=2.31.1 -s1 -t ppc64
 
 # Tools needed to do builds
 
