@@ -1,6 +1,6 @@
 FROM gentoo/portage:latest as portage
 
-FROM gentoo/stage3-x86:latest as toolchains
+FROM gentoo/stage3-amd64:latest as toolchains
 
 # Slightly slimmer Gentoo
 ENV FEATURE="nodoc noinfo noman"
