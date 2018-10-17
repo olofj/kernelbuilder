@@ -19,6 +19,8 @@ purge_dirs() {
 		-c 'rm -rf /logs/* /build/* /build/.??*'
 }
 
+mkdir /tmp/logs ; chmod 777 /tmp/logs
+
 for cont in builder-generic-x32 builder-generic-x86 builder-generic builder ; do
 	purge_dirs
 	sudo fstrim -av
