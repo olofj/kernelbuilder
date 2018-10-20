@@ -20,6 +20,8 @@ purge_dirs() {
 }
 
 mkdir /tmp/logs ; chmod 777 /tmp/logs
+echo "Setting kernel.perf_event_paranoid = -1"
+sudo sysctl -w kernel.perf_event_paranoid=-1
 
 for cont in builder-generic-x32 builder-generic-x86 builder-generic builder ; do
 	purge_dirs
