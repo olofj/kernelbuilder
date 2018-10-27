@@ -39,10 +39,15 @@ build-$(1)-%: build/$(1)-%
 	+@$(MAKE) -sk -f Makefile ARCH=$(1) CROSS_COMPILE="$$(CROSS_COMPILE_$(1))" O=$$< 2> buildall.$(1).$$*.log \
 		&& mv buildall.$(1).$$*.log $(LOGDIR)/buildall.$(1).$$*.log.passed \
 		|| mv buildall.$(1).$$*.log $(LOGDIR)/buildall.$(1).$$*.log.failed
-	rm -rf $$*
+	rm -rf $$<
 endef
 
 ARCHES:=arm arm64 x86 riscv
 $(foreach arch,$(ARCHES),$(eval $(call buildrules,$(arch))))
 
-buildall: $(ALLTARGETS)
+tcinfo-%:
+	@$(CROSS_COMPILE_$*)gcc -v 2>&1 | tail -1 > $(LOGDIR)/tc.$*
+
+tcinfo: $(foreach arch,$(ARCHES),t-$(arch))
+
+buildall: tcinfo $(ALLTARGETS)
