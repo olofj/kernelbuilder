@@ -68,7 +68,7 @@ esac
 
 if [ -d /logs/${REMOTE}/${BUILDID} ] ; then
 	echo "Version ${REMOTE}/${BUILDID} has already been built. Aborting"
-#	exit 0
+	exit 0
 fi
 
 echo "  ::: Email will go to: ${TO}"
@@ -92,7 +92,6 @@ done
 
 mkdir -p /logs/${REMOTE}/${BUILDID}
 mkdir -p /logs/emails
-mkdir -p /install/${REMOTE}/${BUILDID}
 
 if [ $NOCLEAN -ne 1 ] ; then
 	echo "  ::: cleaning" && rm -rf build/* 2>&1 >/dev/null
@@ -119,7 +118,6 @@ fi
 for arch in ${ARCH} ; do
 	touch arch/${arch}/configs/all{no,mod}config
 	touch arch/${arch}/configs/tinyconfig
-	make ARCH=${arch} buildtargets 2>&1 >/dev/null
 done
 
 rm -f buildall.*
@@ -131,10 +129,8 @@ for arch in ${ARCH} ; do
 done
 
 # Kick off main build
-make ${TARG} INSTALLDIR=/ds/kernels VERSIONDIR=${REMOTE}/${BUILDID} -sk -j $(($(nproc) + 2))
+make ${TARG} LOGDIR=/logs/${REMOTE}/${BUILDID} -sk -j $(($(nproc) + 8))
 T2="$(date +%s)"
-
-mv buildall.* /logs/${REMOTE}/${BUILDID}/
 
 (cd /logs/${REMOTE}/${BUILDID} ; 
 	TO="${TO}" \
@@ -142,9 +138,7 @@ mv buildall.* /logs/${REMOTE}/${BUILDID}/
 	REMOTEURL="$(cd /src ; git remote show -n ${REMOTE}| awk '/Fetch URL:/{print $3}')" \
 	BUILDID="${BUILDID}" \
 	TOPCOMMITS="$(cd /src ; git log --oneline -3 ${BUILDID})" \
-	BUILDTIME=$((T2-T1))  /usr/local/bin/buildreport > /logs/emails/${REMOTE}.${BUILDID}.$(date +%K-%H%M%S).txt
+	BUILDTIME=$((T2-T1))  /usr/local/bin/buildreport > /logs/emails/${REMOTE}.${BUILDID}.$(date +%Y%m%d-%H%M%S).txt
 )
 
-echo "  ::: archiving"
-
-echo "  ::: done at $(date)"
+echo "  ::: done with ${REMOTE} ${BUILDID} at $(date)"
