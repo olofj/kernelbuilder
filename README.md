@@ -1,8 +1,6 @@
 # Kernelbuilder docker setup
 
-This builder is setup using gentoo toolchains and system image, rebuilt
-for the local architecture to maximize efficiency (it does make a bit
-of difference, specifig numbers pending).
+This builder is setup using Gentoo toolchains and system image.
 
 ## General setup for the container
 
@@ -25,7 +23,7 @@ My hardware is a 32-core Threadripper 2990WX, with 64GB RAM and NVMe
 Without including all performance data, in general most runs are along
 the below runtimes. There is some noise in the data from run to run,
 but most of them come out around these relative ballparks when building
-Both 32- and 64-bit targets:
+both 32- and 64-bit targets:
 
  - Generic x86\_64:    2419 seconds time elapsed
  - `-mtune-native`:    2386 seconds time elapsed
