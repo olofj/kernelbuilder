@@ -36,6 +36,7 @@ RUN crossdev --gcc \>=8.2.0 --binutils \>=2.31.1 -s1 -t ppc64
 # Tools needed to do builds
 
 RUN emerge vim dev-vcs/git strace bc lzop
+RUN emerge libelf
 
 # Cleanup and don't carry the portage stuff
 
