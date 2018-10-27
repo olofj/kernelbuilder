@@ -6,7 +6,7 @@
 #docker build -t local/stage3-native -f Dockerfile.gentoo-base .
 
 docker build -t local/builder .
-for img in generic generic-x86 generic-x32 ; do
-	docker build -t local/builder-${img} -f Dockerfile.${img} .
+for img in generic generic-x86 generic-x32 generic-x32-7.3.0 ; do
+	docker build --rm -t local/builder-${img} -f Dockerfile.${img} .
 done
 
