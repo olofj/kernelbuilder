@@ -66,22 +66,28 @@ how they launch the container:
 
 [...]
 
-# Allow different toolchains for some repos
-declare -A tc
-tc[stable-rc]="-7.3.0"
-tc[stable-rt]="-7.3.0"
-tc[misc]="-7.3.0"
-container="local/builder-generic-x32"
+container="local/kernelbuilder"
 
-# build <remote> <branch>
+# build <remote> <ref>
 build() {
-        CTNR="${container}${tc[$1]}"
-        docker run --mount type=bind,src=/home/build/work/batch,dst=/src,ro \
+        CNTR="${container}"
+        case $2 in
+                v3*)
+                        CNTR="${container}-7.3.0"
+                        ;;
+                v4.[2-9]*)
+                        CNTR="${container}-7.3.0"
+                        ;;
+                v4.1[0-8]*)
+                        CNTR="${container}-7.3.0"
+                        ;;
+        esac
+        docker run -t --mount type=bind,src=/home/build/work/batch,dst=/src,ro \
                 --mount type=bind,src=/ds/logs/buildlogs,dst=/logs \
                 --tmpfs /build:size=60G,exec \
                 --net none \
                 -e ARCH="riscv x86 arm arm64" \
-                ${CTNR} \
+                ${CNTR} \
                 "$1/$2"
 }
 ```
