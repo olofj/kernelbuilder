@@ -38,6 +38,10 @@ RUN crossdev --gcc \>=8.2.0 --binutils \>=2.31.1 -s1 -t ppc64
 RUN emerge vim dev-vcs/git strace bc lzop
 RUN emerge libelf
 
+# Timezone
+RUN echo "US/Pacific" > /etc/timezone
+RUN emerge --config sys-libs/timezone-data
+
 # Cleanup and don't carry the portage stuff
 
 #RUN rm -rf /usr/portage /var/log/portage /usr/local/portage-crossdev
