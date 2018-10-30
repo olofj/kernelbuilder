@@ -18,7 +18,11 @@ RUN emerge crossdev
 
 RUN emerge crossdev sys-devel/gcc sys-devel/binutils sys-libs/binutils-libs 
 
-ARG GCCVER=">=8.2.0"
+# Tools needed to do builds
+RUN emerge vim dev-vcs/git strace bc lzop
+RUN emerge libelf
+
+ARG GCCVER="\>=8.2.0"
 
 # x86_64 toolchain if needed 
 RUN x86_64-pc-linux-gnu-gcc --version || crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t x86_64
@@ -32,10 +36,6 @@ RUN crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t riscv64-unknown-linux-g
 
 # POWER toolchain
 RUN crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t ppc64
-
-# Tools needed to do builds
-RUN emerge vim dev-vcs/git strace bc lzop
-RUN emerge libelf
 
 # Timezone
 RUN echo "US/Pacific" > /etc/timezone
