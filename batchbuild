@@ -7,7 +7,7 @@ T1="$(date +%s)"
 
 export PATH=${PATH}:~/bin
 
-export ARCH=${ARCH:-arm arm64 riscv x86}
+export ARCH=${ARCH:-arm arm64 riscv i386 x86}
 
 #export CCACHE_DIR=${CCACHE_DIR:-/nv/ccache}
 
@@ -83,12 +83,12 @@ cp ~/makefile.batchbuild makefile
 
 echo "  ::: Building ${BUILDID}"
 
-for arch in ${ARCH} ; do
-	if ! [ -d arch/${arch} ] ; then
-		echo "  ::: Skipping arch ${arch}"
-		ARCH=${ARCH/${arch}}
-	fi
-done
+#for arch in ${ARCH} ; do
+#	if ! [ -d arch/${arch} ] ; then
+#		echo "  ::: Skipping arch ${arch}"
+#		ARCH=${ARCH/${arch}}
+#	fi
+#done
 
 mkdir -p /logs/${REMOTE}/${BUILDID}
 mkdir -p /logs/emails
@@ -120,16 +120,15 @@ rm -f buildall.*
 # Build list of targets (build-<arch>-config)
 TARG=""
 for arch in ${ARCH} ; do
-	if [ "${ARCH}" == "x86" ] ; then
-		TARG="$TARG $(printf "build-x86-%s " defconfig allnoconfig allmodconfig allyesconfig tinyconfig)"
-		TARG="$TARG $(printf "build-i386-%s " defconfig allnoconfig allmodconfig allyesconfig tinyconfig)"
+	if [ "${arch}" == "x86" -o "${arch}" == "i386" ] ; then
+		TARG="$TARG $(printf "build-$arch-%s " defconfig allnoconfig allmodconfig allyesconfig tinyconfig)"
 	else
 		TARG="$TARG $(printf "build-$arch-%s " $(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig allyesconfig tinyconfig)"
 	fi
 done
 
 # Kick off main build
-make ${TARG} LOGDIR=/logs/${REMOTE}/${BUILDID} -sk -j $(($(nproc) + 8))
+make ${TARG} tcinfo LOGDIR=/logs/${REMOTE}/${BUILDID} -sk -j $(($(nproc) + 8))
 T2="$(date +%s)"
 
 (cd /logs/${REMOTE}/${BUILDID} ; 

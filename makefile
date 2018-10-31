@@ -4,6 +4,7 @@
 CROSS_COMPILE_arm = arm-unknown-linux-gnueabi-
 CROSS_COMPILE_arm64 = aarch64-unknown-linux-gnu-
 CROSS_COMPILE_x86 = x86_64-pc-linux-gnu-
+CROSS_COMPILE_i386 = x86_64-pc-linux-gnu-
 CROSS_COMPILE_riscv = riscv64-unknown-linux-gnu-
 #CCACHE_DIR	:= /nv/ccache
 #CCACHE_BASEDIR  := $(PWD)
@@ -42,7 +43,7 @@ build-$(1)-%: build/$(1)-%
 	rm -rf $$<
 endef
 
-ARCHES:=arm arm64 x86 riscv
+ARCHES:=arm arm64 x86 i386 riscv
 $(foreach arch,$(ARCHES),$(eval $(call buildrules,$(arch))))
 
 tcinfo-%:
