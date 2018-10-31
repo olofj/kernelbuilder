@@ -115,17 +115,17 @@ fi
 # pselect.
 ( while true ; do killall -s CHLD make ; sleep 1 ; done  >/dev/null 2>&1 ) &
 
-for arch in ${ARCH} ; do
-	touch arch/${arch}/configs/all{no,mod}config
-	touch arch/${arch}/configs/tinyconfig
-done
-
 rm -f buildall.*
 
 # Build list of targets (build-<arch>-config)
 TARG=""
 for arch in ${ARCH} ; do
-	TARG="$TARG $(printf "build-$arch-%s " $(basename -a arch/${arch}/configs/*[^.]config))"
+	if [ "${ARCH}" == "x86" ] ; then
+		TARG="$TARG $(printf "build-x86-%s " defconfig allnoconfig allmodconfig allyesconfig tinyconfig)"
+		TARG="$TARG $(printf "build-i386-%s " defconfig allnoconfig allmodconfig allyesconfig tinyconfig)"
+	else
+		TARG="$TARG $(printf "build-$arch-%s " $(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig allyesconfig tinyconfig)"
+	fi
 done
 
 # Kick off main build
