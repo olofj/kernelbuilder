@@ -22,7 +22,7 @@ RUN emerge crossdev sys-devel/gcc sys-devel/binutils sys-libs/binutils-libs
 RUN emerge vim dev-vcs/git strace bc lzop
 RUN emerge libelf
 
-ARG GCCVER="\>=8.2.0"
+ARG GCCVER=">=8.2.0"
 
 # x86_64 toolchain if needed 
 RUN x86_64-pc-linux-gnu-gcc --version || crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t x86_64
