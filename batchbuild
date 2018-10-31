@@ -44,7 +44,7 @@ next)
 mainline)
 	TO="olof@lixom.net, kernel-build-reports@lists.linaro.org"
 	;;
-stable-rc)
+stable*)
 	TO="olof@lixom.net, kernel-build-reports@lists.linaro.org"
 	;;
 cros)
@@ -128,7 +128,7 @@ for arch in ${ARCH} ; do
 done
 
 # Kick off main build
-make ${TARG} tcinfo LOGDIR=/logs/${REMOTE}/${BUILDID} -sk -j $(($(nproc) + 8))
+make ${TARG} LOGDIR=/logs/${REMOTE}/${BUILDID} -sk -j $(($(nproc) + 8))
 T2="$(date +%s)"
 
 (cd /logs/${REMOTE}/${BUILDID} ; 
