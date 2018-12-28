@@ -4,6 +4,7 @@
 # TO
 # REMOTE
 # REMOTEURL
+# BRANCH
 # BUILDID
 # TOPCOMMITS
 # BUILDTIME
@@ -27,6 +28,18 @@ warn_count() {
 
 warn_stats() {
 	warn_grep $* | sort | uniq -c | sort -n
+}
+
+dts_grep() {
+	fgrep -h /dts/ $* | sort -u
+}
+
+dts_count() {
+	dts_grep $* | wc -l
+}
+
+dts_stats() {
+	dts_grep $* | sort -n
 }
 
 sect_grep() {
@@ -60,12 +73,12 @@ syscall_stats() {
 		sort -u
 }
 
-(
 PASSED=$(ls -l buildall.*passed |wc -l)
 FAILED=$(ls -l buildall.*failed |wc -l)
 WARNS=$(warn_count buildall.*)
 SECTS=$(sect_count buildall.*)
 ERRS=$(err_count buildall.*)
+DTS=$(dts_count buildall.*)
 
 sed -e "s/%%FAILED%%/${FAILED}/g" \
     -e "s/%%WARNS%%/${WARNS}/g" \
@@ -104,6 +117,7 @@ sed -e "s/%%PASSED%%/${PASSED}/g" \
     -e "s/%%FAILED%%/${FAILED}/g" \
     -e "s/%%SECTS%%/${SECTS}/g" \
     -e "s/%%WARNS%%/${WARNS}/g" \
+    -e "s/%%DTS%%/${DTS}/g" \
     -e "s/%%TIME%%/$((BUILDTIME/60%120))m $((BUILDTIME%60))s/g" \
 << EOF
 
@@ -113,6 +127,7 @@ sed -e "s/%%PASSED%%/${PASSED}/g" \
 	Failed:			%%FAILED%%
 
 	Warnings:		%%WARNS%%
+	DTS warnings:		%%DTS%%
 
 	Section mismatches:	%%SECTS%%
 
@@ -159,6 +174,17 @@ else
 	echo ""
 fi
 
+if [ "${DTS}" != "0" ] ; then
+	echo ""
+	echo "DTS Warnings:"
+	echo ""
+	dts_grep buildall.*
+else
+	echo ""
+	echo "No DTS warnings"
+	echo ""
+fi
+
 
 if fgrep -q "warning syscall" buildall.* ; then
 	echo ""
@@ -181,4 +207,3 @@ else
 	echo "No section mismatches"
 	echo ""
 fi
-)
