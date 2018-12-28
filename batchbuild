@@ -50,6 +50,9 @@ stable*)
 cros)
 	TO="olof@lixom.net, cros-kernel-buildreports@google.com"
 	;;
+riscv)
+	TO="palmer@sifive.com, olof@lixom.net"
+	;;
 *)
 	TO="olof@lixom.net"
 	;;
@@ -121,9 +124,9 @@ rm -f buildall.*
 TARG=""
 for arch in ${ARCH} ; do
 	if [ "${arch}" == "x86" -o "${arch}" == "i386" ] ; then
-		TARG="$TARG $(printf "build-$arch-%s " defconfig allnoconfig allmodconfig allyesconfig tinyconfig)"
+		TARG="$TARG $(printf "build-$arch-%s " defconfig allnoconfig allmodconfig tinyconfig)"
 	else
-		TARG="$TARG $(printf "build-$arch-%s " $(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig allyesconfig tinyconfig)"
+		TARG="$TARG $(printf "build-$arch-%s " $(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig tinyconfig)"
 	fi
 done
 
@@ -136,6 +139,7 @@ T2="$(date +%s)"
 	REMOTE="${REMOTE}" \
 	REMOTEURL="$(cd /src ; git remote show -n ${REMOTE}| awk '/Fetch URL:/{print $3}')" \
 	BUILDID="${BUILDID}" \
+	BRANCH="${BRANCH}" \
 	TOPCOMMITS="$(cd /src ; git log --oneline -3 ${BUILDID})" \
 	BUILDTIME=$((T2-T1))  /usr/local/bin/buildreport > /logs/emails/${REMOTE}.${BUILDID}.$(date +%Y%m%d-%H%M%S).txt
 )
