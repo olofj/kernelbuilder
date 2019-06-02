@@ -22,20 +22,20 @@ RUN emerge crossdev sys-devel/gcc sys-devel/binutils sys-libs/binutils-libs
 RUN emerge vim dev-vcs/git strace bc lzop
 RUN emerge libelf cpio
 
-ARG GCCVER=">=8.3.0"
+ARG GCCVER=">=9.1.0"
 
 # x86_64 toolchain if needed 
-RUN x86_64-pc-linux-gnu-gcc --version || crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t x86_64
+RUN x86_64-pc-linux-gnu-gcc --version || crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t x86_64
 
 # ARM toolchains
-RUN crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t arm
-RUN crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t arm64
+RUN crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t arm
+RUN crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t arm64
 
 # RISCV toolchain
-RUN crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t riscv64-unknown-linux-gnu --k 4.17 --l 2.28 --without-headers
+RUN crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t riscv64-unknown-linux-gnu --k 4.17 --l 2.28 --without-headers
 
 # POWER toolchain
-RUN crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t ppc64
+RUN crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t ppc64
 
 # Timezone
 RUN echo "US/Pacific" > /etc/timezone
@@ -67,7 +67,10 @@ WORKDIR /src
 ENTRYPOINT ["/usr/local/bin/batchbuild"]
 CMD "."
 
-# Volumes for the expected mountpoints
+# Volumes for the expected mountpoints:
+#   /src is read-only sources (git repo)
+#   /build is temporary build output (tmpfs)
+#   /logs is where emails and logs are published
 VOLUME ["/src"]
 VOLUME ["/build"]
 VOLUME ["/logs"]
