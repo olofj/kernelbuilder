@@ -20,9 +20,9 @@ RUN emerge crossdev sys-devel/gcc sys-devel/binutils sys-libs/binutils-libs
 
 # Tools needed to do builds
 RUN emerge vim dev-vcs/git strace bc lzop
-RUN emerge libelf
+RUN emerge libelf cpio
 
-ARG GCCVER=">=8.2.0"
+ARG GCCVER=">=8.3.0"
 
 # x86_64 toolchain if needed 
 RUN x86_64-pc-linux-gnu-gcc --version || crossdev --gcc ${GCCVER} --binutils \>=2.31.1 -s1 -t x86_64
