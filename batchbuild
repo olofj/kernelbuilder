@@ -35,6 +35,9 @@ case ${REMOTE} in
 rmk)
 	TO="olof@lixom.net, rmk+buildreports@armlinux.org.uk"
 	;;
+soc)
+	TO="olof@lixom.net, kernel-build-reports@lists.linaro.org"
+	;;
 arm-soc)
 	TO="olof@lixom.net, kernel-build-reports@lists.linaro.org"
 	;;
