@@ -22,16 +22,15 @@ fi
 
 REMOTE=$(echo $1 | sed s@/.*@@g)
 BRANCH=$(echo $1 | sed s@.*/@@)
-CHECKOUT=$2
-FETCHARGS=""
+CHECKOUT="$2"
 
-if [ "$(dirname $1)" == "." ] ; then
-	REMOTE=$1
+if [ "$(dirname "$1")" == "." ] ; then
+	REMOTE="$1"
 	BRANCH="HEAD"
 fi
 
 
-case ${REMOTE} in
+case "${REMOTE}" in
 rmk)
 	TO="olof@lixom.net, rmk+buildreports@armlinux.org.uk"
 	;;
@@ -65,14 +64,14 @@ esac
 
 case ${REMOTE} in
 	next)
-		BUILDID=$(cd /src ; git describe --match=next* ${CHECKOUT})
+		BUILDID=$(cd /src || exit ; git describe --match=next* "${CHECKOUT}")
 	;;
 	*)
-		BUILDID=$(cd /src ; git describe --match=v* ${CHECKOUT})
+		BUILDID=$(cd /src || exit ; git describe --match=v* "${CHECKOUT}")
 	;;
 esac
 
-if [ -d /logs/${REMOTE}/${BUILDID} ] ; then
+if [ -d "/logs/${REMOTE}/${BUILDID}" ] ; then
 	echo "Version ${REMOTE}/${BUILDID} has already been built. Aborting"
 	exit 0
 fi
@@ -83,7 +82,7 @@ cd /build || exit 1
 
 echo "  ::: Cloning sources"
 
-git clone --quiet --reference=/src --depth=1 -n file:///src . && git checkout --quiet ${BUILDID} 
+git clone --quiet --reference=/src --depth=1 -n file:///src . && git checkout --quiet "${BUILDID}"
 
 cp ~/makefile.batchbuild makefile 
 
@@ -96,11 +95,11 @@ echo "  ::: Building ${BUILDID}"
 #	fi
 #done
 
-mkdir -p /logs/${REMOTE}/${BUILDID}
+mkdir -p "/logs/${REMOTE}/${BUILDID}"
 mkdir -p /logs/emails
 
 if [ $NOCLEAN -ne 1 ] ; then
-	echo "  ::: cleaning" && rm -rf build/* 2>&1 >/dev/null
+	echo "  ::: cleaning" && rm -rf build/* >/dev/null 2>&1
 fi
 
 echo "  ::: Full builds for: ${ARCH}"
@@ -130,7 +129,7 @@ rm -f buildall.*
 # Build list of targets (build-<arch>-config)
 TARG=""
 for arch in ${ARCH} ; do
-	if [ "${arch}" == "x86" -o "${arch}" == "i386" ] ; then
+	if [ "${arch}" == "x86" ] || [ "${arch}" == "i386" ] ; then
 		TARG="$TARG $(printf "build-$arch-%s " defconfig allnoconfig allmodconfig tinyconfig)"
 	else
 		TARG="$TARG $(printf "build-$arch-%s " $(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig tinyconfig)"
@@ -138,17 +137,17 @@ for arch in ${ARCH} ; do
 done
 
 # Kick off main build
-make ${TARG} LOGDIR=/logs/${REMOTE}/${BUILDID} -sk -j $(($(nproc) + 8))
+make ${TARG} LOGDIR="/logs/${REMOTE}/${BUILDID}" -sk -j $(($(nproc) + 8))
 T2="$(date +%s)"
 
-(cd /logs/${REMOTE}/${BUILDID} ; 
+(cd "/logs/${REMOTE}/${BUILDID}" || exit ;
 	TO="${TO}" \
 	REMOTE="${REMOTE}" \
-	REMOTEURL="$(cd /src ; git remote show -n ${REMOTE}| awk '/Fetch URL:/{print $3}')" \
+	REMOTEURL="$(cd /src || exit ; git remote show -n "${REMOTE}"| awk '/Fetch URL:/{print $3}')" \
 	BUILDID="${BUILDID}" \
 	BRANCH="${BRANCH}" \
-	TOPCOMMITS="$(cd /src ; git log --oneline -3 ${BUILDID})" \
-	BUILDTIME=$((T2-T1))  /usr/local/bin/buildreport > /logs/emails/${REMOTE}.${BUILDID}.$(date +%Y%m%d-%H%M%S).txt
+	TOPCOMMITS="$(cd /src || exit ; git log --oneline -3 "${BUILDID}")" \
+	BUILDTIME=$((T2-T1))  /usr/local/bin/buildreport > "/logs/emails/${REMOTE}.${BUILDID}.$(date +%Y%m%d-%H%M%S).txt"
 )
 
 echo "  ::: done with ${REMOTE} ${BUILDID} at $(date)"
