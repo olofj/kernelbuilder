@@ -115,9 +115,9 @@ if [ -f arch/riscv/Makefile ] ; then
 	(grep -v "CONFIG_SMP=y" arch/riscv/configs/defconfig ; echo "CONFIG_SMP=n") > arch/riscv/configs/nosmp_defconfig
 	(grep -v "CONFIG_ARCH_RV32I is not" arch/riscv/configs/defconfig ; echo "CONFIG_ARCH_RV32I=y") > arch/riscv/configs/rv32_defconfig
 	(echo "CONFIG_ARCH_RV32I=y" ; echo "CONFIG_ARCH_RV64I=n") > allmod.config
-	make ARCH=riscv KCONFIG_ALLCONFIG=1 allmodconfig
-	mv .config arch/riscv/configs/rv32_allmod_defconfig
-	rm allmod.config
+	mkdir /tmp/rvcfg && make O=/tmp/rvcfg ARCH=riscv KCONFIG_ALLCONFIG=1 allmodconfig >/dev/null 2>&1
+	mv /tmp/rvcfg/.config arch/riscv/configs/rv32_allmod_defconfig
+	rm -rf /tmp/rvcfg allmod.config
 fi
 
 # Hack to deal with missing jobserver tokens due to make getting stuck in
