@@ -53,7 +53,7 @@ cros)
 	TO="olof@lixom.net, cros-kernel-buildreports@google.com"
 	;;
 riscv)
-	TO="palmer@sifive.com, olof@lixom.net"
+	TO="paul.walmsley@sifive.com, palmer@dabbelt.com, olof@lixom.net"
 	;;
 *)
 	TO="olof@lixom.net"
@@ -107,6 +107,9 @@ echo "  ::: Full builds for: ${ARCH}"
 (grep -v "CONFIG_LPAE is not" arch/arm/configs/multi_v7_defconfig ; echo "CONFIG_LPAE=y") > arch/arm/configs/multi_lpae_defconfig
 (grep -v "CONFIG_SMP=y" arch/arm/configs/multi_v7_defconfig ; echo "CONFIG_SMP=n") > arch/arm/configs/multi_v7_nosmp_defconfig
 (grep -v "CONFIG_SMP=y"  arch/arm64/configs/defconfig ; echo "CONFIG_SMP=n") > arch/arm64/configs/nosmp_defconfig
+
+# rpc_defconfig isn't supported by our binutils any more.
+rm -f arch/arm/configs/rpc_defconfig
 
 # First, do only a pass across the defconfigs that get booted and build
 # them early, so booting can happen in parallel
