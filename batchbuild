@@ -95,6 +95,8 @@ echo "  ::: Building ${BUILDID}"
 #	fi
 #done
 
+#trap "rm -rf /logs/${REMOTE}/${BUILDID} ; exit" SIGINT SIGTERM SIGQUIT
+
 mkdir -p "/logs/${REMOTE}/${BUILDID}"
 mkdir -p /logs/emails
 
@@ -133,15 +135,27 @@ rm -f buildall.*
 TARG=""
 for arch in ${ARCH} ; do
 	if [ "${arch}" == "x86" ] || [ "${arch}" == "i386" ] ; then
-		TARG="$TARG $(printf "build-$arch-%s " defconfig allnoconfig allmodconfig tinyconfig)"
+		CFGS="defconfig allnoconfig allmodconfig tinyconfig"
 	else
-		TARG="$TARG $(printf "build-$arch-%s " $(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig tinyconfig)"
+		CFGS="$(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig tinyconfig)"
 	fi
+	for f in ${CFGS} ; do
+		if [ ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.failed -a
+		     ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.failed ] ; then
+			TARG="$TARG build-${arch}-${f}"
+		else
+			echo "    ::: Skipping ${arch} ${f} since it's already built"
+		fi
+	done
 done
 
 # Kick off main build
 make ${TARG} LOGDIR="/logs/${REMOTE}/${BUILDID}" -sk -j $(($(nproc) + 8))
 T2="$(date +%s)"
+
+# No longer nuke output directory if we get terminated
+
+trap "exit" SIGINT SIGTERM SIGQUIT
 
 (cd "/logs/${REMOTE}/${BUILDID}" || exit ;
 	TO="${TO}" \
