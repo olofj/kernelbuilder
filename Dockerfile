@@ -40,6 +40,9 @@ RUN crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t riscv64-unknown-linux-gnu
 # POWER toolchain
 RUN crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t ppc64
 
+# MIPS toolchain
+RUN crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t mips64
+
 # Timezone
 RUN echo "US/Pacific" > /etc/timezone
 RUN emerge --config sys-libs/timezone-data
