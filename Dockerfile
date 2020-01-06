@@ -22,6 +22,9 @@ RUN emerge crossdev sys-devel/gcc sys-devel/binutils sys-libs/binutils-libs
 RUN emerge vim dev-vcs/git strace bc lzop
 RUN emerge elfutils cpio
 
+# Sparse is good to have for check builds
+RUN emerge sparse
+
 ARG GCCVER=">=9.1.0"
 
 # x86_64 toolchain if needed 
