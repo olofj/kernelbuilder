@@ -66,6 +66,10 @@ RUN pip3 install git+https://github.com/devicetree-org/dt-schema.git@master
 RUN groupadd -g 1001 build
 RUN useradd -m -u 1001 -g 1001 -s /bin/bash build
 
+# Let's do a 1000 too
+RUN groupadd -g 1000 user
+RUN useradd -m -u 1000 -g 1000 -s /bin/bash user
+
 COPY batchbuild /usr/local/bin/batchbuild
 COPY makefile /home/build/makefile.batchbuild
 COPY buildreport /usr/local/bin/
