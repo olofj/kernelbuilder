@@ -60,6 +60,8 @@ RUN rm -rf /usr/share/gtk-doc /usr/share/locale \
 FROM scratch
 COPY --from=toolchains / /
 
+RUN pip3 install git+https://github.com/devicetree-org/dt-schema.git@master
+
 # Local user, scripts
 RUN groupadd -g 1001 build
 RUN useradd -m -u 1001 -g 1001 -s /bin/bash build
