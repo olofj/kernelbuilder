@@ -9,15 +9,6 @@ export PATH=${PATH}:~/bin
 
 export ARCH=${ARCH:-arm arm64 riscv i386 x86}
 
-#export CCACHE_DIR=${CCACHE_DIR:-/nv/ccache}
-
-if [ "$1" == "-noclean" ] ; then
-	NOCLEAN=1
-	shift
-else
-	NOCLEAN=0
-fi
-
 # Usage: batchbuild repo/branch
 
 REMOTE=$(echo $1 | sed s@/.*@@g)
@@ -88,21 +79,8 @@ cp ~/makefile.batchbuild makefile
 
 echo "  ::: Building ${BUILDID}"
 
-#for arch in ${ARCH} ; do
-#	if ! [ -d arch/${arch} ] ; then
-#		echo "  ::: Skipping arch ${arch}"
-#		ARCH=${ARCH/${arch}}
-#	fi
-#done
-
-#trap "rm -rf /logs/${REMOTE}/${BUILDID} ; exit" SIGINT SIGTERM SIGQUIT
-
 mkdir -p "/logs/${REMOTE}/${BUILDID}"
 mkdir -p /logs/emails
-
-if [ $NOCLEAN -ne 1 ] ; then
-	echo "  ::: cleaning" && rm -rf build/* >/dev/null 2>&1
-fi
 
 echo "  ::: Full builds for: ${ARCH}"
 
@@ -112,9 +90,6 @@ echo "  ::: Full builds for: ${ARCH}"
 
 # rpc_defconfig isn't supported by our binutils any more.
 rm -f arch/arm/configs/rpc_defconfig
-
-# First, do only a pass across the defconfigs that get booted and build
-# them early, so booting can happen in parallel
 
 if [ -f arch/riscv/Makefile ] ; then
 	(grep -v "CONFIG_SMP=y" arch/riscv/configs/defconfig ; echo "CONFIG_SMP=n") > arch/riscv/configs/nosmp_defconfig
@@ -140,8 +115,8 @@ for arch in ${ARCH} ; do
 		CFGS="$(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig tinyconfig"
 	fi
 	for f in ${CFGS} ; do
-		if [ ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.failed -a \
-		     ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.passed ] ; then
+		if [ ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.log.failed -a \
+		     ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.log.passed ] ; then
 			TARG="$TARG build-${arch}-${f}"
 		else
 			echo "    ::: Skipping ${arch} ${f} since it's already built"
@@ -155,7 +130,7 @@ T2="$(date +%s)"
 
 # No longer nuke output directory if we get terminated
 
-trap "exit" SIGINT SIGTERM SIGQUIT
+touch /logs/${REMOTE}/${BUILDID}/.done
 
 (cd "/logs/${REMOTE}/${BUILDID}" || exit ;
 	TO="${TO}" \
@@ -168,3 +143,4 @@ trap "exit" SIGINT SIGTERM SIGQUIT
 )
 
 echo "  ::: done with ${REMOTE} ${BUILDID} at $(date)"
+exit 0
