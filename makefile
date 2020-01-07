@@ -6,15 +6,10 @@ CROSS_COMPILE_arm64 = aarch64-unknown-linux-gnu-
 CROSS_COMPILE_x86 = x86_64-pc-linux-gnu-
 CROSS_COMPILE_i386 = x86_64-pc-linux-gnu-
 CROSS_COMPILE_riscv = riscv64-unknown-linux-gnu-
-#CCACHE_DIR	:= /nv/ccache
-#CCACHE_BASEDIR  := $(PWD)
-#CCACHE_UMASK    := 002
-#CC              := "ccache $(CROSS_COMPILE)gcc"
 O               := obj-tmp
 
 CC		?= "$(CROSS_COMPILE)gcc"
 
-#export ARCH CROSS_COMPILE CC O CCACHE_DIR CCACHE_UMASK CCACHE_BASEDIR
 export O
 
 ALLCONFIGS := $(wildcard arch/$(ARCH)/configs/*config)
@@ -35,12 +30,13 @@ build/%:
 
 define buildrules
 build-$(1)-%: build/$(1)-%
+	@touch $(LOGDIR)/buildall.$(1).$$*.log.started
 	+@$(MAKE) -f Makefile ARCH=$(1) CROSS_COMPILE="$$(CROSS_COMPILE_$(1))" O=$$< $$* > /dev/null
 	+@$(MAKE) -f Makefile ARCH=$(1) CROSS_COMPILE="$$(CROSS_COMPILE_$(1))" O=$$< olddefconfig > /dev/null
 	+@$(MAKE) -sk -f Makefile ARCH=$(1) CROSS_COMPILE="$$(CROSS_COMPILE_$(1))" O=$$< 2> buildall.$(1).$$*.log \
 		&& mv buildall.$(1).$$*.log $(LOGDIR)/buildall.$(1).$$*.log.passed \
 		|| mv buildall.$(1).$$*.log $(LOGDIR)/buildall.$(1).$$*.log.failed
-	rm -rf $$<
+	rm -rf $(LOGDIR)/buildall.$(1).$$*.log.started $$<
 endef
 
 ARCHES:=arm arm64 x86 i386 riscv
