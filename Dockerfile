@@ -47,6 +47,10 @@ RUN crossdev --gcc ${GCCVER} --binutils \>=2.32 -s1 -t mips64
 RUN echo "US/Pacific" > /etc/timezone
 RUN emerge --config sys-libs/timezone-data
 
+RUN emerge dev-python/pip
+
+RUN emerge libyaml
+
 # Cleanup and don't carry the portage stuff
 RUN rm -rf /usr/portage /var/log/portage /usr/local/portage-crossdev
 
@@ -60,8 +64,6 @@ RUN rm -rf /usr/share/gtk-doc /usr/share/locale \
 FROM scratch
 COPY --from=toolchains / /
 
-RUN pip3 install git+https://github.com/devicetree-org/dt-schema.git@master
-
 # Local user, scripts
 RUN groupadd -g 1001 build
 RUN useradd -m -u 1001 -g 1001 -s /bin/bash build
@@ -69,6 +71,9 @@ RUN useradd -m -u 1001 -g 1001 -s /bin/bash build
 # Let's do a 1000 too
 RUN groupadd -g 1000 user
 RUN useradd -m -u 1000 -g 1000 -s /bin/bash user
+
+RUN su build -c 'pip3 install --user git+https://github.com/devicetree-org/dt-schema.git@master'
+RUN su user -c 'pip3 install --user git+https://github.com/devicetree-org/dt-schema.git@master'
 
 COPY batchbuild /usr/local/bin/batchbuild
 COPY makefile /home/build/makefile.batchbuild
@@ -78,6 +83,7 @@ USER build
 WORKDIR /src
 ENTRYPOINT ["/usr/local/bin/batchbuild"]
 CMD "."
+ENV PATH=${PATH}:/home/build/.local/bin:/home/user/.local/bin
 
 # Volumes for the expected mountpoints:
 #   /src is read-only sources (git repo)
