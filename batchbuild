@@ -71,7 +71,7 @@ case ${REMOTE} in
 	;;
 esac
 
-if [ -d "/logs/${REMOTE}/${BUILDID}" ] ; then
+if [ -f "/logs/${REMOTE}/${BUILDID}/index.html" ] ; then
 	echo "Version ${REMOTE}/${BUILDID} has already been built. Aborting"
 	exit 0
 fi
@@ -137,11 +137,11 @@ for arch in ${ARCH} ; do
 	if [ "${arch}" == "x86" ] || [ "${arch}" == "i386" ] ; then
 		CFGS="defconfig allnoconfig allmodconfig tinyconfig"
 	else
-		CFGS="$(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig tinyconfig)"
+		CFGS="$(basename -a arch/${arch}/configs/*defconfig) allnoconfig allmodconfig tinyconfig"
 	fi
 	for f in ${CFGS} ; do
-		if [ ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.failed -a
-		     ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.failed ] ; then
+		if [ ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.failed -a \
+		     ! -f /logs/${REMOTE}/${BUILDID}/buildall.${arch}.${f}.passed ] ; then
 			TARG="$TARG build-${arch}-${f}"
 		else
 			echo "    ::: Skipping ${arch} ${f} since it's already built"
