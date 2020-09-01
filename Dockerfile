@@ -51,6 +51,8 @@ RUN emerge dev-python/pip
 
 RUN emerge libyaml
 
+RUN emerge u-boot-tools
+
 # Cleanup and don't carry the portage stuff
 RUN rm -rf /usr/portage /var/log/portage /usr/local/portage-crossdev
 
