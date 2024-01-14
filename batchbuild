@@ -125,11 +125,13 @@ for arch in ${ARCH} ; do
 done
 
 # Kick off main build
+echo make ${TARG} LOGDIR="/logs/${REMOTE}/${BUILDID}" -sk -j $(($(nproc) + 8))
 make ${TARG} LOGDIR="/logs/${REMOTE}/${BUILDID}" -sk -j $(($(nproc) + 8))
 T2="$(date +%s)"
 
 # No longer nuke output directory if we get terminated
 
+ls -l /logs/${REMOTE}/${BUILDID}/
 touch /logs/${REMOTE}/${BUILDID}/.done
 
 (cd "/logs/${REMOTE}/${BUILDID}" || exit ;
